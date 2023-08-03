@@ -4,5 +4,5 @@ yak:
     mem: 2
   light:
     threads: 1
-    mem: 32
+    mem: 46
   hrs: 72
