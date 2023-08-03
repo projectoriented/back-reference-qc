@@ -50,7 +50,7 @@ def get_cell_outs(which_one):
             return cell_specific_qv
         elif which_one == "new_fastqz":
             fofn_df = get_cell_fastq(sample_name=wildcards.sample)
-            new_fastqz = fofn_df.apply(lambda row: f"results/reads_filtered/{wildcards.sample}/{row.name}-subset.fastq.gz",axis=1).tolist()
+            new_fastqz = fofn_df.apply(lambda row: f"results/reads_filtered/{wildcards.sample}/fastq/{row.name}-subset.fastq.gz",axis=1).tolist()
 
             return new_fastqz
         elif which_one == "filtered_yak":
@@ -66,7 +66,8 @@ def get_final_output(wildcards):
     final_outputs = expand(
         [
             "results/read_qv/{sample}/ccs-sr_kqv.txt.gz",
-            "results/plots/{sample}/kde-before_filter.png", "results/plots/{sample}/kde-after_filter.png"
+            "results/plots/{sample}/kde-before_filter.png",
+            "results/plots/{sample}/kde-after_filter.png",
             "results/reads_filtered/{sample}/fastq.fofn"
         ],
         sample=df.index
@@ -217,9 +218,9 @@ rule extract_lowQ_reads:
         fastq_fai = get_reads(which_one="fai")
     output:
         yak_filtered = 'results/reads_filtered/{sample}/{cell_name}-sr_qv-filtered.txt.gz',
-        lowQ_reads = 'results/reads_filtered/{sample}/{cell_name}_lowQV-reads.txt',
-        target_reads = 'results/reads_filtered/{sample}/{cell_name}_target-reads.txt',
-        new_fai = 'results/reads_filtered/{sample}/{cell_name}-subset.fastq.gz.fai'
+        lowQ_reads = 'results/reads_filtered/{sample}/filtered_out/{cell_name}_lowQV-reads.txt',
+        target_reads = temp('results/reads_filtered/{sample}/{cell_name}_target-reads.txt'),
+        new_fai = 'results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq.gz.fai'
     threads: 1
     resources:
         mem = 1,
@@ -237,7 +238,7 @@ rule extract_lowQ_reads:
 
         # Get low quality reads to filter out
         yak_out_df = yak_out_df[abs(yak_out_df['z']) > 3] # absolute value to consider both tails of distribution
-        yak_out_df.to_csv(output.lowQ_reads, index=False, header=False)
+        yak_out_df.to_csv(output.lowQ_reads, index=False, header=True, sep='\t')
 
         # Filter out from fai and output the target reads
         fastq_fai_df = pd.read_csv(input.fastq_fai, sep='\t', header=None, names=['read_name', 'length', 'offset', 'linebases', 'linewidth', 'qualoffset'])
@@ -261,7 +262,7 @@ rule split_fastq:
         hrs=12
     run:
         import numpy as np
-        df = pd.read_csv(input.target_reads, header=None)
+        df = pd.read_table(input.target_reads, header=None, usecols=[1])
 
         dfs = np.array_split(df, parts)
         for idx, entry in enumerate(dfs):
@@ -294,8 +295,8 @@ rule gather_fastq:
     input:
         subset_fastqs = gather.sg_parts('results/reads_filtered/{{sample}}/temp/{{cell_name}}-subset_{scatteritem}.fastq')
     output:
-        new_fastqz = 'results/reads_filtered/{sample}/{cell_name}-subset.fastq.gz',
-        merged_fastqs = temp('results/reads_filtered/{sample}/{cell_name}-subset.fastq')
+        new_fastqz = 'results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq.gz',
+        merged_fastqs = temp('results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq')
     threads: 1
     resources:
         mem = 1,
