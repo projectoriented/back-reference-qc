@@ -234,10 +234,10 @@ rule extract_lowQ_reads:
         yak_out_df["z"] = stats.zscore(yak_out_df["qv"])
 
         # Write out a filtered yak output to plot KDE later on
-        yak_out_df[abs(yak_out_df['z']) < 3].to_csv(output.yak_filtered,header=True,index=False,columns=['read_name', 'qv'], sep='\t')
+        yak_out_df[yak_out_df['z'] > -3].to_csv(output.yak_filtered,header=True,index=False,columns=['read_name', 'qv'], sep='\t')
 
         # Get low quality reads to filter out
-        yak_out_df = yak_out_df[abs(yak_out_df['z']) > 3] # absolute value to consider both tails of distribution
+        yak_out_df = yak_out_df[yak_out_df['z'] < -3]
         yak_out_df.to_csv(output.lowQ_reads, index=False, header=True, sep='\t')
 
         # Filter out from fai and output the target reads
@@ -262,7 +262,7 @@ rule split_fastq:
         hrs=12
     run:
         import numpy as np
-        df = pd.read_table(input.target_reads, header=None, usecols=[1])
+        df = pd.read_table(input.target_reads, header=None)
 
         dfs = np.array_split(df, parts)
         for idx, entry in enumerate(dfs):
@@ -271,7 +271,7 @@ rule split_fastq:
 
 rule subset_fastq:
     input:
-        target_reads=rules.split_fastq.output.splitted,
+        target_reads="results/reads_filtered/{sample}/temp/{cell_name}_target-reads_{scatteritem}.txt",
         fastq=get_reads(which_one='cell')
     output:
         subsetted_fastq = temp('results/reads_filtered/{sample}/temp/{cell_name}-subset_{scatteritem}.fastq')
