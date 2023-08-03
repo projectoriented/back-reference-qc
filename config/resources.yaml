@@ -1,0 +1,8 @@
+yak:
+  heavy:
+    threads: 32
+    mem: 2
+  light:
+    threads: 1
+    mem: 32
+  hrs: 72
