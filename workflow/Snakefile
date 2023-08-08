@@ -13,7 +13,7 @@ configfile: "config/resources.yaml"
 
 # --------  Globals -------- #
 YAK_VERSION = "f37704a"
-
+FILTER_Z=config.get("z_filter", -2)
 
 wildcard_constraints:
     data_type="ccs|sr",
@@ -289,7 +289,7 @@ rule extract_lowQ_reads:
 
         # Write out a filtered yak output to plot KDE later on
         pd.concat(
-            [yak_out_df[yak_out_df["z"] > -2], extreme_df]
+            [yak_out_df[yak_out_df["z"] > FILTER_Z], extreme_df]
         ).to_csv(
             output.yak_filtered,
             header=True,
@@ -299,7 +299,7 @@ rule extract_lowQ_reads:
         )
 
         # Get low quality reads to filter out
-        yak_out_df = yak_out_df[yak_out_df["z"] < -2]
+        yak_out_df = yak_out_df[yak_out_df["z"] < FILTER_Z]
         yak_out_df.to_csv(output.lowQ_reads, index=False, header=True, sep="\t")
         prcntge = "{:.2f}".format(yak_out_df.shape[0] / total_records)
 
