@@ -1,2 +1,7 @@
 manifest: manifest.tab
 new_fastq: False
+
+query_data_type: long
+reference_data_type: short
+
+kraken2_db: "path/to/kraken2/full-db"

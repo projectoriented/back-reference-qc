@@ -6,3 +6,14 @@ yak:
     threads: 1
     mem: 46
   hrs: 72
+
+default:
+  threads: 1
+  mem: 16
+  hrs: 72
+
+kraken2:
+  heavy:
+    threads: 16
+    mem: 8
+  hrs: 72
