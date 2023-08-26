@@ -58,9 +58,9 @@ rule summarize_kraken2:
                 .count()\
                 .reset_index()\
                 .rename(columns={"qname": "reads_mapped"})\
-                .to_csv(output.kraken2_summary, index=False, header=True, columns=["taxonomy", "reads_mapped", "cell_name"], sep='\t')
+                .to_csv(output.kraken2_summary, index=False, header=True, columns=["reads_mapped", "taxonomy", "cell_name"], sep='\t')
         else:
-            pd.DataFrame(columns=["taxonomy", "reads_mapped", "cell_name"]).to_csv(output.kraken2_summary, index=False, header=True, columns=["taxonomy", "reads_mapped", "cell_name"], sep='\t')
+            pd.DataFrame(columns=["reads_mapped", "taxonomy", "cell_name"]).to_csv(output.kraken2_summary, index=False, header=True, columns=["taxonomy", "reads_mapped", "cell_name"], sep='\t')
 
 rule merge_summaries:
     input:
@@ -76,6 +76,8 @@ rule merge_summaries:
         if not df.empty:
             df2 = df.groupby(["taxonomy"])["reads_mapped"].sum().reset_index()
             df3 = df.groupby("taxonomy")["cell_name"].apply(",".join).reset_index()
-            df2.merge(df3,on="taxonomy").to_csv(output.merged, index=False, header=True, columns=["taxonomy", "reads_mapped", "cell_name"], sep='\t')
+            df2 = df2.merge(df3,on="taxonomy")
+            df2["sample"] = wildcards.sample
+            df2.to_csv(output.merged, index=False, header=True, columns=["sample", "reads_mapped", "taxonomy", "cell_name"], sep='\t')
         else:
-            df.to_csv(output.merged, index=False, header=True, columns=["taxonomy", "reads_mapped", "cell_name"], sep='\t')
+            df.to_csv(output.merged, index=False, header=True, columns=["sample", "reads_mapped", "taxonomy", "cell_name"], sep='\t')

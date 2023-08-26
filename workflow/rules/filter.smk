@@ -33,19 +33,25 @@ rule extract_lowQ_reads:
 
         # Exclude the right-side extremes, yak outputs 99.00 if read vs. short read kmer libraries are 100% matching
         extreme_df = yak_out_df.copy()
-        extreme_df = extreme_df.loc[extreme_df["qv"] > 80]
+        extreme_df = extreme_df.query("qv == 99")
         prcntge = "{:.2f}".format(extreme_df.shape[0] / total_records)
 
-        print(f"QV-high\t{extreme_df['qv'].median()}\t{wildcards.cell_name}\t{prcntge}")
+        print(f"QV-99\t{extreme_df['qv'].median()}\t{wildcards.cell_name}\t{prcntge}")
+
+        # Exclude the left-side extremes, yak outputs 0.00
+        zeros_df = yak_out_df.copy()
+        zeros_df = zeros_df.query("qv == 0")
+        prcntge = "{:.2f}".format(zeros_df.shape[0] / total_records)
+        print(f"QV-0\t{zeros_df['qv'].median()}\t{wildcards.cell_name}\t{prcntge}")
 
         # Calculate Z score
-        yak_out_df = yak_out_df.loc[~yak_out_df.index.isin(extreme_df.index)]
+        # yak_out_df = yak_out_df.loc[~yak_out_df.index.isin(extreme_df.index)]
+        combine_extreme_indicies = zeros_df.index.tolist() + extreme_df.index.tolist()
+        yak_out_df = yak_out_df.loc[~yak_out_df.index.isin(combine_extreme_indicies)]
         yak_out_df["z"] = stats.zscore(yak_out_df["qv"])
 
         # Write out a filtered yak output to plot KDE later on
-        pd.concat(
-            [yak_out_df[yak_out_df["z"] > FILTER_Z], extreme_df]
-        ).to_csv(
+        yak_out_df[yak_out_df["z"] > FILTER_Z].to_csv(
             output.yak_filtered,
             header=True,
             index=False,
@@ -55,10 +61,13 @@ rule extract_lowQ_reads:
 
         # Get low quality reads to filter out
         yak_out_df = yak_out_df[yak_out_df["z"] < FILTER_Z]
-        yak_out_df.to_csv(output.lowQ_reads, index=False, header=True, sep="\t")
         prcntge = "{:.2f}".format(yak_out_df.shape[0] / total_records)
 
         print(f"QV-low\t{yak_out_df['qv'].median()}\t{wildcards.cell_name}\t{prcntge}")
+
+        # Write out the low quality reads as well as the ones with zero QV.
+        yak_out_df = pd.concat([yak_out_df, zeros_df]).fillna("N/A")
+        yak_out_df.to_csv(output.lowQ_reads,index=False,header=True,sep="\t")
 
         # Filter out from fai and output the target reads
         fastq_fai_df = pd.read_csv(
@@ -74,8 +83,12 @@ rule extract_lowQ_reads:
                 "qualoffset",
             ],
         )
+
+        # Remove the low quality reads from the resulting fastq
         fastq_fai_df = fastq_fai_df[
-            ~fastq_fai_df["read_name"].isin(yak_out_df["read_name"])
+            ~fastq_fai_df["read_name"].isin(
+                yak_out_df.read_name
+            )
         ]
 
         fastq_fai_df.to_csv(
