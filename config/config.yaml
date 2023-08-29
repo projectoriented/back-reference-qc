@@ -1,6 +1,8 @@
 manifest: manifest.tab
 new_fastq: False
 
+z_filter: -2
+
 query_data_type: long
 reference_data_type: short
 
