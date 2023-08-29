@@ -6,12 +6,12 @@ import sys
 # --------  Load sample sheet -------- #
 df = pd.read_table(
     config["manifest"], dtype=str, index_col="sample"
-)  # sample\tquery_fofn\treference_fofn
+).fillna("N/A")  # sample\tquery_fofn\treference_fofn\tcomparison_type
 
 
 # --------  Constraints -------- #
 wildcard_constraints:
-    input_type="query|reference"
+    input_type="query|reference",
 
 
 # --------  Input functions -------- #
@@ -51,6 +51,12 @@ def get_reads(which_one="fastq_files"):
 
     return inner
 
+def get_comparison_type(wildcards):
+    ct = df.at[wildcards.sample, "comparison_type"]
+    if ct == "N/A":
+        return "self"
+    else:
+        return ct
 
 def get_query_fastq(sample_name):
     fofn_path = df.at[sample_name, "query_fofn"]
@@ -95,7 +101,7 @@ def get_query_outs(which_one):
             return filtered_yak
         else:
             raise ValueError(
-                "Unsupported param in get_query_outs at the moment."
+                f"Unsupported param in get_query_outs (current: {which_one}) at the moment. Choose from (qv, new_fastqz, filtered_yak)"
             )
 
     return inner

@@ -1,26 +1,30 @@
-rule extract_lowQ_reads:
+rule extract_reads:
     input:
         yak_out_txt="results/read_qv/{sample}/{cell_name}-reference_qv.txt.gz",
         fastq_fai=get_reads(which_one="fai"),
     output:
         yak_filtered="results/reads_filtered/{sample}/{cell_name}-reference_qv-filtered.txt.gz",
-        lowQ_reads="results/reads_filtered/{sample}/filtered_out/{cell_name}_lowQV-reads.txt",
+        undesirable_reads="results/reads_filtered/{sample}/filtered_out/{cell_name}_undesirable-reads.txt",
         target_reads=temp(
             "results/reads_filtered/{sample}/{cell_name}_target-reads.txt"
         ),
         new_fai="results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq.gz.fai",
+    params:
+        comparison_type = get_comparison_type
     log:
-        "results/reads_filtered/{sample}/log/{cell_name}-extract_lowQ_reads.log",
-    threads: 1
+        "results/reads_filtered/{sample}/log/{cell_name}-extract_undesirable_reads.log",
+    threads: config["default"]["threads"]
     resources:
-        mem=1,
-        hrs=12,
+        mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
+        hrs=config["default"]["hrs"],
     run:
         from scipy import stats
 
         # logging
         sys.stdout = open(log[0], "w")
 
+        print(f"comparison_type: {params.comparison_type} for sample: {wildcards.sample}")
+        print(f"z_filter: {FILTER_Z} for sample: {wildcards.sample}")
         yak_out_df = pd.read_csv(
             input.yak_out_txt,
             sep="\t",
@@ -45,29 +49,48 @@ rule extract_lowQ_reads:
         print(f"QV-0\t{zeros_df['qv'].median()}\t{wildcards.cell_name}\t{prcntge}")
 
         # Calculate Z score
-        # yak_out_df = yak_out_df.loc[~yak_out_df.index.isin(extreme_df.index)]
         combine_extreme_indicies = zeros_df.index.tolist() + extreme_df.index.tolist()
         yak_out_df = yak_out_df.loc[~yak_out_df.index.isin(combine_extreme_indicies)]
         yak_out_df["z"] = stats.zscore(yak_out_df["qv"])
 
-        # Write out a filtered yak output to plot KDE later on
-        yak_out_df[yak_out_df["z"] > FILTER_Z].to_csv(
+        if params.comparison_type == "self":
+            # Write out a filtered yak output to plot KDE later on
+            filter_df = yak_out_df[yak_out_df["z"] > FILTER_Z]
+
+            # Get undesirable reads to filter out
+            yak_out_df = yak_out_df[yak_out_df["z"] < FILTER_Z]
+
+            # DF to write out in additional to the undesirable ones
+            which_df = zeros_df
+        elif params.comparison_type == "other":
+            # Write out a filtered yak output to plot KDE later on
+            filter_df = yak_out_df[yak_out_df["z"] < abs(FILTER_Z)]
+
+            # Get undesirable reads to filter out
+            yak_out_df = yak_out_df[yak_out_df["z"] > abs(FILTER_Z)]
+
+            # DF to write out in additional to the undesirable ones
+            which_df = extreme_df
+        else:
+            raise ValueError(f"Invalid argument for comparison (current: {params.comparison_type}). Choose from either (other, self).")
+
+
+        filter_df.to_csv(
             output.yak_filtered,
             header=True,
             index=False,
             columns=["read_name", "qv"],
             sep="\t",
         )
+        del filter_df
 
-        # Get low quality reads to filter out
-        yak_out_df = yak_out_df[yak_out_df["z"] < FILTER_Z]
         prcntge = "{:.2f}".format(yak_out_df.shape[0] / total_records)
 
         print(f"QV-low\t{yak_out_df['qv'].median()}\t{wildcards.cell_name}\t{prcntge}")
 
         # Write out the low quality reads as well as the ones with zero QV.
-        yak_out_df = pd.concat([yak_out_df, zeros_df]).fillna("N/A")
-        yak_out_df.to_csv(output.lowQ_reads,index=False,header=True,sep="\t")
+        yak_out_df = pd.concat([yak_out_df, which_df]).fillna("N/A")
+        yak_out_df.to_csv(output.undesirable_reads,index=False,header=True,sep="\t")
 
         # Filter out from fai and output the target reads
         fastq_fai_df = pd.read_csv(
@@ -116,10 +139,10 @@ if config["new_fastq"]:
                     "results/reads_filtered/{{sample}}/temp/{{cell_name}}_target-reads_{scatteritem}.txt"
                 )
             ),
-        threads: 1
+        threads: config["default"]["threads"]
         resources:
-            mem=1,
-            hrs=12,
+            mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
+            hrs=config["default"]["hrs"],
         run:
             import numpy as np
 
@@ -137,16 +160,16 @@ if config["new_fastq"]:
             subsetted_fastq=temp(
                 "results/reads_filtered/{sample}/temp/{cell_name}-subset_{scatteritem}.fastq"
             ),
-        threads: 1
+        threads: config["default"]["threads"]
         resources:
-            mem=1,
-            hrs=12,
+            mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
+            hrs=config["default"]["hrs"],
         envmodules:
             "modules",
             "modules-init",
             "modules-gs/prod",
             "modules-eichler/prod",
-            "seqtk/1.3",
+            f"seqtk/{SEQTK_VERSION}",
         shell:
             """
             seqtk subseq {input.fastq} {input.target_reads} > {output.subsetted_fastq}
@@ -162,10 +185,10 @@ if config["new_fastq"]:
             merged_fastqs=temp(
                 "results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq"
             ),
-        threads: 1
+        threads: config["default"]["threads"]
         resources:
-            mem=1,
-            hrs=12,
+            mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
+            hrs=config["default"]["hrs"],
         envmodules:
             "modules",
             "modules-init",
@@ -184,10 +207,10 @@ if config["new_fastq"]:
             fastq=get_query_outs(which_one="new_fastqz"),
         output:
             new_fofn="results/reads_filtered/{sample}/fastq.fofn",
-        threads: 1
+        threads: config["default"]["threads"]
         resources:
-            mem=1,
-            hrs=12,
+            mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
+            hrs=config["default"]["hrs"],
         shell:
             """
             readlink -f {input.fastq} > {output.new_fofn}
