@@ -1,0 +1,31 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+
+description: an entry in the manifest file
+
+properties:
+  sample:
+    type: string
+    description: sample name/identifier (alphanumeric string, that may additionally contain '_' and '-' and '.')
+    pattern: "^[a-zA-Z_0-9-\\.]+$"
+  query_fofn:
+    type: string
+    description: File of file names containing paths to query fastq files
+    pattern: ".*\\.fofn$"
+  reference_fofn:
+    type: string
+    description: File of file names containing paths to reference fastq files
+    pattern: ".*\\.fofn$"
+  comparison_type:
+    anyOf:
+      - type: string
+      - type: null
+    enum:
+      - self
+      - other
+    description: define the comparison, either to self or to another sample that is suspected to be cross-contaminated with
+
+required:
+  - sample
+  - query_fofn
+  - reference_fofn
+  - comparison_type

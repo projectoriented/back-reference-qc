@@ -60,7 +60,7 @@ rule extract_reads:
             # Get undesirable reads to filter out
             yak_out_df = yak_out_df[yak_out_df["z"] < FILTER_Z]
 
-            # DF to write out in additional to the undesirable ones
+            # Table to write out in addition to the undesirable ones
             which_df = zeros_df
         elif params.comparison_type == "other":
             # Write out a filtered yak output to plot KDE later on
@@ -69,7 +69,7 @@ rule extract_reads:
             # Get undesirable reads to filter out
             yak_out_df = yak_out_df[yak_out_df["z"] > abs(FILTER_Z)]
 
-            # DF to write out in additional to the undesirable ones
+            # Table to write out in addition to the undesirable ones
             which_df = extreme_df
         else:
             raise ValueError(f"Invalid argument for comparison (current: {params.comparison_type}). Choose from either (other, self).")

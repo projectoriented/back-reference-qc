@@ -1,13 +1,18 @@
-import pandas as pd
-
 import os
 import sys
+import pandas as pd
+from snakemake.utils import validate
+
+validate(config, schema="../schemas/config.schema.yaml")
 
 # --------  Load sample sheet -------- #
 df = pd.read_table(
-    config["manifest"], dtype=str, index_col="sample"
-).fillna("N/A")  # sample\tquery_fofn\treference_fofn\tcomparison_type
+    config["manifest"], dtype=str
+).set_index(["sample"], drop=False)
 
+validate(df, schema="../schemas/manifest.schema.yaml")
+
+df.fillna("N/A", inplace=True)
 
 # --------  Constraints -------- #
 wildcard_constraints:

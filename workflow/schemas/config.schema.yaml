@@ -1,0 +1,36 @@
+$schema: "https://json-schema.org/draft/2020-12/schema"
+
+description: snakemake configuration file
+
+type: object
+
+properties:
+  manifest:
+    type: string
+  new_fastq:
+    type: boolean
+    default: false
+  z_filter:
+    type: integer
+    default: -2
+  query_data_type:
+    type: string
+    default: long
+    enum:
+      - short
+      - long
+  reference_data_type:
+    type: string
+    default: short
+    enum:
+      - short
+      - long
+  kraken2_db:
+    type: string
+    description: path to kraken2 database
+
+required:
+  - manifest
+  - new_fastq
+  - query_data_type
+  - reference_data_type
