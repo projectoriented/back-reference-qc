@@ -65,7 +65,7 @@ rule summarize_kraken2:
         df["sample"] = wildcards.sample
         df["cell_total_reads"] = pd.read_table(input.cell_fai, header=None)[0].shape[0]
         if not df.empty:
-            df.groupby(["taxonomy", "cell_name"])["qname"]\
+            df.groupby(["taxonomy", "cell_name", "sample", "cell_total_reads"])["qname"]\
                 .count()\
                 .reset_index()\
                 .rename(columns={"qname": "reads_mapped"})\
@@ -83,19 +83,18 @@ rule merge_summaries:
         mem= lambda wildcards,attempt: attempt * config["default"]["mem"],
         hrs=config["default"]["hrs"],
     run:
-        df = pd.concat([pd.read_table(x) for x in input.kraken2_summaries])
+        df = pd.concat([pd.read_table(x, header=0) for x in input.kraken2_summaries])
         if not df.empty:
             # Get sum of total reads in all cells
-            total_cell_reads = df.cell_total_reads.sum()[0]
+            total_cell_reads = sum(df.cell_total_reads)
 
             df2 = df.groupby(["taxonomy"])["reads_mapped"].sum().reset_index()
             df3 = df.groupby("taxonomy")["cell_name"].apply(",".join).reset_index()
             df2 = df2.merge(df3,on="taxonomy")
             df2["sample"] = wildcards.sample
 
-
             # Get sum of undesirable reads mapped to taxonomies
-            total_reads_mapped = df2.reads_mapped.sum()[0]
+            total_reads_mapped = sum(df2.reads_mapped)
 
             # Add a total row
             df2 = pd.concat([df2, pd.DataFrame({"sample": ["total"], "reads_mapped": total_reads_mapped, "taxonomy": ["N/A"], "cell_name": total_cell_reads})])
