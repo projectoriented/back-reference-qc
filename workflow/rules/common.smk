@@ -10,9 +10,9 @@ df = pd.read_table(
     config["manifest"], dtype=str
 ).set_index(["sample"], drop=False)
 
-validate(df, schema="../schemas/manifest.schema.yaml")
-
 df.fillna("N/A", inplace=True)
+
+validate(df, schema="../schemas/manifest.schema.yaml")
 
 # --------  Constraints -------- #
 wildcard_constraints:

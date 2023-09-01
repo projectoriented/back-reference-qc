@@ -16,12 +16,11 @@ properties:
     description: File of file names containing paths to reference fastq files
     pattern: ".*\\.fofn$"
   comparison_type:
-    anyOf:
-      - type: string
-      - type: null
+    type: string
     enum:
       - self
       - other
+      - N/A
     description: define the comparison, either to self or to another sample that is suspected to be cross-contaminated with
 
 required:
