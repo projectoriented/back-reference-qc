@@ -4,10 +4,10 @@ rule undesirable_seq:
         undesirable_reads = "results/reads_filtered/{sample}/filtered_out/{cell_name}_undesirable-reads.txt"
     output:
         undesirable_fa = temp("results/reads_filtered/{sample}/filtered_out/fasta/{cell_name}_undesirable-quality.fa"),
-    threads: config["default"]["threads"]
+    threads: 1
     resources:
-        mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
-        hrs=config["default"]["hrs"],
+        mem=lambda wildcards, attempt: attempt * 16,
+        hrs=72,
     envmodules:
         "modules",
         "modules-init",
@@ -28,10 +28,10 @@ rule kraken2:
         sequence_taxonomy = "results/reads_filtered/{sample}/filtered_out/kraken2/{cell_name}_kraken2-out.txt.gz",
     params:
         kraken2_db = KRAKEN2_DB
-    threads: config["kraken2"]["heavy"]["threads"]
+    threads: 16
     resources:
-        mem=lambda wildcards, attempt: attempt * config["kraken2"]["heavy"]["mem"],
-        hrs=config["kraken2"]["hrs"],
+        mem=lambda wildcards, attempt: attempt * 8,
+        hrs=72,
     envmodules:
         "modules",
         "modules-init",
@@ -55,10 +55,10 @@ rule summarize_kraken2:
         cell_fai = get_reads(which_one="fai")
     output:
         kraken2_summary = temp("results/reads_filtered/{sample}/filtered_out/kraken2/{cell_name}_kraken2-summary.tsv.gz")
-    threads: config["default"]["threads"]
+    threads: 1
     resources:
-        mem= lambda wildcards,attempt: attempt * config["default"]["mem"],
-        hrs=config["default"]["hrs"],
+        mem= lambda wildcards,attempt: attempt * 16,
+        hrs=72,
     run:
         df = pd.read_table(input.kraken2_out, header=None, names=["is_classified", "qname", "taxonomy", "length(bp)"])
         df["cell_name"] = wildcards.cell_name
@@ -78,10 +78,10 @@ rule merge_summaries:
         kraken2_summaries = get_kraken2_summaries
     output:
         merged = "results/reads_filtered/{sample}/filtered_out/kraken2/summary.tsv.gz"
-    threads: config["default"]["threads"]
+    threads: 1
     resources:
-        mem= lambda wildcards,attempt: attempt * config["default"]["mem"],
-        hrs=config["default"]["hrs"],
+        mem=lambda wildcards,attempt: attempt * 16,
+        hrs=72,
     run:
         df = pd.concat([pd.read_table(x, header=0) for x in input.kraken2_summaries])
         if not df.empty:

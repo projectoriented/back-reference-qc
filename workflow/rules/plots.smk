@@ -3,10 +3,10 @@ rule generate_kde_plot:
         read_qv_files=get_query_outs(which_one="qv"),
     output:
         sample_qv_kde="results/plots/{sample}/kde-before_filter.png",
-    threads: config["default"]["threads"]
+    threads: 1
     resources:
-        mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
-        hrs=config["default"]["hrs"],
+        mem=lambda wildcards, attempt: attempt * 16,
+        hrs=72,
     run:
         import matplotlib.pyplot as plt
         import seaborn as sns
@@ -56,7 +56,7 @@ rule kde_filtered:
     threads: 1
     resources:
         mem=lambda wildcards, attempt: attempt * 16,
-        hrs=config["yak"]["hrs"],
+        hrs=72,
     run:
         import matplotlib.pyplot as plt
         import seaborn as sns

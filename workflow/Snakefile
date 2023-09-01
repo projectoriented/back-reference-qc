@@ -1,7 +1,6 @@
 master_snakefile_prefix = os.path.dirname(os.path.dirname(workflow.snakefile))
 
 # -------- Config files -------- #
-configfile: master_snakefile_prefix + "/config/resources.yaml"
 configfile: master_snakefile_prefix + "/config/config.yaml"
 
 if os.path.exists("config/config.yaml"):

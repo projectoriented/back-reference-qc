@@ -13,10 +13,10 @@ rule extract_reads:
         comparison_type = get_comparison_type
     log:
         "results/reads_filtered/{sample}/log/{cell_name}-extract_undesirable_reads.log",
-    threads: config["default"]["threads"]
+    threads: 1
     resources:
-        mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
-        hrs=config["default"]["hrs"],
+        mem=lambda wildcards, attempt: attempt * 16,
+        hrs=72,
     run:
         from scipy import stats
 
@@ -139,10 +139,10 @@ if config["new_fastq"]:
                     "results/reads_filtered/{{sample}}/temp/{{cell_name}}_target-reads_{scatteritem}.txt"
                 )
             ),
-        threads: config["default"]["threads"]
+        threads: 1
         resources:
-            mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
-            hrs=config["default"]["hrs"],
+            mem=lambda wildcards, attempt: attempt * 16,
+            hrs=72,
         run:
             import numpy as np
 
@@ -160,10 +160,10 @@ if config["new_fastq"]:
             subsetted_fastq=temp(
                 "results/reads_filtered/{sample}/temp/{cell_name}-subset_{scatteritem}.fastq"
             ),
-        threads: config["default"]["threads"]
+        threads: 1
         resources:
-            mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
-            hrs=config["default"]["hrs"],
+            mem=lambda wildcards, attempt: attempt * 16,
+            hrs=72,
         envmodules:
             "modules",
             "modules-init",
@@ -185,10 +185,10 @@ if config["new_fastq"]:
             merged_fastqs=temp(
                 "results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq"
             ),
-        threads: config["default"]["threads"]
+        threads: 1
         resources:
-            mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
-            hrs=config["default"]["hrs"],
+            mem=lambda wildcards, attempt: attempt * 16,
+            hrs=72,
         envmodules:
             "modules",
             "modules-init",
@@ -207,10 +207,10 @@ if config["new_fastq"]:
             fastq=get_query_outs(which_one="new_fastqz"),
         output:
             new_fofn="results/reads_filtered/{sample}/fastq.fofn",
-        threads: config["default"]["threads"]
+        threads: 1
         resources:
-            mem=lambda wildcards, attempt: attempt * config["default"]["mem"],
-            hrs=config["default"]["hrs"],
+            mem=lambda wildcards, attempt: attempt * 16,
+            hrs=72,
         shell:
             """
             readlink -f {input.fastq} > {output.new_fofn}

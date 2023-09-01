@@ -6,10 +6,10 @@ rule buildmer:
     params:
         sr_endedness=ILLUMINA_ENDEDNESS,
         data_type=lambda wildcards: config[f"{wildcards.input_type}_data_type"]
-    threads: config["yak"]["heavy"]["threads"]
+    threads: 32
     resources:
-        mem=lambda wildcards, attempt: attempt * config["yak"]["heavy"]["mem"],
-        hrs=config["yak"]["hrs"],
+        mem=lambda wildcards, attempt: attempt * 2,
+        hrs=72,
     envmodules:
         "modules",
         "modules-init",
@@ -44,10 +44,10 @@ rule compute_read_qv:
         reference_hash_table="results/hash_table/{sample}/reference.yak",
     output:
         qv_txt="results/read_qv/{sample}/{cell_name}-reference_qv.txt.gz",
-    threads: config["yak"]["heavy"]["threads"]
+    threads: 32
     resources:
-        mem=lambda wildcards, attempt: attempt * config["yak"]["heavy"]["mem"],
-        hrs=config["yak"]["hrs"],
+        mem=lambda wildcards, attempt: attempt * 2,
+        hrs=72,
     envmodules:
         "modules",
         "modules-init",
@@ -67,10 +67,10 @@ rule compute_kmer_qv:
         reference_hash_table="results/hash_table/{sample}/reference.yak",
     output:
         kmer_qv="results/read_qv/{sample}/query-reference_kqv.txt.gz",
-    threads: config["yak"]["light"]["threads"]
+    threads: 1
     resources:
-        mem=lambda wildcards, attempt: attempt * config["yak"]["light"]["mem"],
-        hrs=config["yak"]["hrs"],
+        mem=lambda wildcards, attempt: attempt * 46,
+        hrs=72,
     envmodules:
         "modules",
         "modules-init",
