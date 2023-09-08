@@ -74,6 +74,13 @@ def get_query_fastq(sample_name):
 
     fofn_df["cell_name"] = fofn_df.filepath.map(get_cell_name)
 
+    # Check for duplicates
+    if fofn_df.cell_name.duplicated().any():
+        # Add this column to offset duplicated namings
+        fofn_df["idx"] = range(fofn_df.shape[0])
+
+        fofn_df["cell_name"] = fofn_df["cell_name"] + "-" + fofn_df.idx.astype(str)
+
     fofn_df.set_index("cell_name", inplace=True)
     return fofn_df
 
