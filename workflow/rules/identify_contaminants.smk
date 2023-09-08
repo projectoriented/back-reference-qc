@@ -86,7 +86,7 @@ rule merge_summaries:
         df = pd.concat([pd.read_table(x, header=0) for x in input.kraken2_summaries])
         if not df.empty:
             # Get sum of total reads in all cells
-            total_cell_reads = sum(df.cell_total_reads)
+            total_cell_reads = sum(df.cell_total_reads.unique())
 
             df2 = df.groupby(["taxonomy"])["reads_mapped"].sum().reset_index()
             df3 = df.groupby("taxonomy")["cell_name"].apply(",".join).reset_index()
