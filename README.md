@@ -1,6 +1,6 @@
 # back-reference-qc
 
-A bioinformatics pipeline that detects unreliable reads with low QV. Quality values are cross-referenced from its own kmerized e.g. Illumina library or your choice of complementary technology for the sample in query. If filtering of low QV are desired, then this can be fine-tuned via the z_filter parameter which is analogous to z score values (peep the z scores projected on standard distribution with a quick google search).
+A bioinformatics pipeline that detects unreliable reads with low QV. Quality values are cross-referenced from its own kmerized e.g. Illumina library or your choice of complementary technology (Illumina or long reads) for the sample in query. It's also possible to filter out the quality reads but otherwise not required. By default, this pipeine will produce kernel density estimation plots before and after defined z-score parameter to reflect the distribution pattern.
 
 ## Getting started
 1. Clone the repo
@@ -73,6 +73,7 @@ QV thresholds:
 - [ ] Put in CI tests
 - [ ] Add conda enviroments
 - [ ] Build bare-bone container to get minimal example running
+- [ ] Expand on z_filter and new_fastq options
 
 ## FAQ
 1. What is an example config and manifest?
