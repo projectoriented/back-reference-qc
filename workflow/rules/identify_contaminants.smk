@@ -23,11 +23,12 @@ rule undesirable_seq:
 
 rule kraken2:
     input:
-        undesirable_quality_fa = "results/reads_filtered/{sample}/filtered_out/fasta/{cell_name}_undesirable-quality.fa",
+        sequences = get_kraken2_inputs(which_one="seq"),
     output:
         sequence_taxonomy = "results/reads_filtered/{sample}/filtered_out/kraken2/{cell_name}_kraken2-out.txt.gz",
     params:
-        kraken2_db = KRAKEN2_DB
+        kraken2_db = KRAKEN2_DB,
+        extra_param = get_kraken2_inputs(which_one="kraken_param")
     threads: 16
     resources:
         mem=lambda wildcards, attempt: attempt * 8,
@@ -41,10 +42,11 @@ rule kraken2:
     shell:
         """
         kraken2 \
-            --db {params.kraken2_db} {input.undesirable_quality_fa} \
+            --db {params.kraken2_db} {input.sequences} \
             --use-names \
             --memory-mapping \
             --threads {threads} \
+            {params.extra_param} \
             | cut -f1,2,3,4 \
             | gzip -c > {output.sequence_taxonomy}
         """

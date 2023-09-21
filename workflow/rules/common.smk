@@ -21,12 +21,14 @@ wildcard_constraints:
 
 # --------  Input functions -------- #
 def get_final_output(wildcards):
-    final_outputs = [
-        "results/read_qv/{sample}/query-reference_kqv.txt.gz",
-        "results/plots/{sample}/kde-before_filter.png",
-        "results/plots/{sample}/kde-after_filter.png",
-        "results/reads_filtered/{sample}/filtered_out/kraken2/summary.tsv.gz",
-    ]
+    final_outputs = []
+
+    for row in df.itertuples():
+        final_outputs.append(f"results/reads_filtered/{row.sample}/filtered_out/kraken2/summary.tsv.gz"),
+        if row.reference_fofn != "N/A":
+            final_outputs.append(f"results/read_qv/{row.sample}/query-reference_kqv.txt.gz"),
+            final_outputs.append(f"results/plots/{row.sample}/kde-before_filter.png"),
+            final_outputs.append(f"results/plots/{row.sample}/kde-after_filter.png"),
 
     if config["new_fastq"]:
         final_outputs.append("results/reads_filtered/{sample}/fastq.fofn")
@@ -40,6 +42,25 @@ def get_kraken2_summaries(wildcards):
         sample=wildcards.sample,
         cell_name=fofn_df.index.tolist()
     )
+
+def get_kraken2_inputs(which_one):
+    def inner(wildcards):
+        kraken_param = ""
+        if df.at[wildcards.sample, "reference_fofn"] == "N/A":
+            fofn_df = get_query_fastq(sample_name=wildcards.sample)
+            seq = fofn_df.at[wildcards.cell_name, "filepath"]
+            if seq.endswith(".gz"):
+                kraken_param = "--gzip-compressed"
+        else:
+            seq = "results/reads_filtered/{sample}/filtered_out/fasta/{cell_name}_undesirable-quality.fa"
+
+        if which_one == "kraken_param":
+            return kraken_param
+        elif which_one == "seq":
+            return seq
+        else:
+            raise ValueError(f"Unsupported arg: {which_one} for get_kraken2_inputs")
+    return inner
 
 def get_reads(which_one="fastq_files"):
     def inner(wildcards):

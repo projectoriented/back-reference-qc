@@ -13,8 +13,7 @@ properties:
     pattern: ".*\\.fofn$"
   reference_fofn:
     type: string
-    description: File of file names containing paths to reference fastq files
-    pattern: ".*\\.fofn$"
+    description: File of file names containing paths to reference fastq files or leave empty
   comparison_type:
     type: string
     enum:
