@@ -30,8 +30,8 @@ def get_final_output(wildcards):
             final_outputs.append(f"results/plots/{row.sample}/kde-before_filter.png"),
             final_outputs.append(f"results/plots/{row.sample}/kde-after_filter.png"),
 
-    if config["new_fastq"]:
-        final_outputs.append("results/reads_filtered/{sample}/fastq.fofn")
+            if config["new_fastq"]:
+                final_outputs.append("results/reads_filtered/{sample}/fastq.fofn")
 
     return expand(final_outputs, sample=df.index)
 
