@@ -10,6 +10,15 @@ properties:
   new_fastq:
     type: boolean
     default: false
+  ignore_taxid:
+    type: array
+    contains:
+      type: string
+    items:
+      anyOf:
+        - type: string
+        - type: null
+    default: [None]
   z_filter:
     type: integer
     default: -2

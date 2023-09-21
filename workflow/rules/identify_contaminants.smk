@@ -54,7 +54,10 @@ rule summarize_kraken2:
         kraken2_out = "results/reads_filtered/{sample}/filtered_out/kraken2/{cell_name}_kraken2-out.txt.gz",
         cell_fai = get_reads(which_one="fai")
     output:
-        kraken2_summary = temp("results/reads_filtered/{sample}/filtered_out/kraken2/{cell_name}_kraken2-summary.tsv.gz")
+        kraken2_summary = temp("results/reads_filtered/{sample}/filtered_out/kraken2/{cell_name}_kraken2-summary.tsv.gz"),
+        ignore_these_taxid_in_filtering = temp("results/reads_filtered/{sample}/retain/kraken2/{cell_name}_target-reads.txt")
+    params:
+        ignore_taxa=config.get("ignore_taxid", [])
     threads: 1
     resources:
         mem= lambda wildcards,attempt: attempt * 16,
@@ -64,6 +67,16 @@ rule summarize_kraken2:
         df["cell_name"] = wildcards.cell_name
         df["sample"] = wildcards.sample
         df["cell_total_reads"] = pd.read_table(input.cell_fai, header=None)[0].shape[0]
+
+        ignore_list = params.ignore_taxa
+        # Write out read names if ignore tax ids are desired.
+        if ignore_list:
+            ignore_list = '|'.join([f"\(taxid {x}\)" for x in ignore_list])
+            df.loc[df["taxonomy"].str.contains(fr"{ignore_list}")].to_csv(output.ignore_these_taxid_in_filtering, columns=["qname"], header=False, index=False)
+        else:
+            with open(output.ignore_these_taxid_in_filtering,'w') as outfile:
+                outfile.write("")
+
         if not df.empty:
             df.groupby(["taxonomy", "cell_name", "sample", "cell_total_reads"])["qname"]\
                 .count()\
