@@ -31,9 +31,9 @@ def get_final_output(wildcards):
             final_outputs.append(f"results/plots/{row.sample}/kde-after_filter.png"),
 
             if config["new_fastq"]:
-                final_outputs.append("results/reads_filtered/{sample}/fastq.fofn")
+                final_outputs.append(f"results/reads_filtered/{row.sample}/fastq.fofn")
 
-    return expand(final_outputs, sample=df.index)
+    return expand(final_outputs)
 
 def get_kraken2_summaries(wildcards):
     fofn_df = get_query_fastq(sample_name=wildcards.sample)
