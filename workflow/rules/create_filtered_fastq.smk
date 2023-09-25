@@ -1,5 +1,3 @@
-import pandas as pd
-
 if config["new_fastq"]:
     parts = 15
 

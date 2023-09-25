@@ -6,6 +6,5 @@ query_data_type: long
 reference_data_type: short
 
 new_fastq: False
-ignore_taxid:
-  - "9606"
+
 kraken2_db: "path/to/kraken2/full-db"
