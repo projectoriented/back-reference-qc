@@ -6,9 +6,9 @@ rule buildmer:
     params:
         sr_endedness=ILLUMINA_ENDEDNESS,
         data_type=lambda wildcards: config[f"{wildcards.input_type}_data_type"]
-    threads: 32
+    threads: 16
     resources:
-        mem=lambda wildcards, attempt: attempt * 2,
+        mem=lambda wildcards, attempt: attempt * 4,
         hrs=72,
     envmodules:
         "modules",
@@ -44,9 +44,9 @@ rule compute_read_qv:
         reference_hash_table="results/hash_table/{sample}/reference.yak",
     output:
         qv_txt="results/read_qv/{sample}/{cell_name}-reference_qv.txt.gz",
-    threads: 32
+    threads: 16
     resources:
-        mem=lambda wildcards, attempt: attempt * 2,
+        mem=lambda wildcards, attempt: attempt * 4,
         hrs=72,
     envmodules:
         "modules",
