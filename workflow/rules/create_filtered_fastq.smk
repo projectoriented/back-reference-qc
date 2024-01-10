@@ -16,7 +16,7 @@ if config["new_fastq"]:
             ),
         threads: 1
         resources:
-            mem=lambda wildcards, attempt: attempt * 16,
+            mem=calc_mem_gb,
             hrs=72,
         run:
             import numpy as np
@@ -43,7 +43,7 @@ if config["new_fastq"]:
             ),
         threads: 1
         resources:
-            mem=lambda wildcards, attempt: attempt * 16,
+            mem=calc_mem_gb,
             hrs=72,
         envmodules:
             "modules",
@@ -68,7 +68,7 @@ if config["new_fastq"]:
             ),
         threads: 1
         resources:
-            mem=lambda wildcards, attempt: attempt * 16,
+            mem=calc_mem_gb,
             hrs=72,
         envmodules:
             "modules",
@@ -90,7 +90,7 @@ if config["new_fastq"]:
             new_fofn="results/reads_filtered/{sample}/fastq.fofn",
         threads: 1
         resources:
-            mem=lambda wildcards, attempt: attempt * 16,
+            mem=calc_mem_gb,
             hrs=72,
         shell:
             """

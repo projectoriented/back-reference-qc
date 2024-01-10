@@ -8,7 +8,7 @@ rule buildmer:
         data_type=lambda wildcards: config[f"{wildcards.input_type}_data_type"]
     threads: 16
     resources:
-        mem=lambda wildcards, attempt: attempt * 4,
+        mem=calc_mem_gb,
         hrs=72,
     envmodules:
         "modules",
@@ -46,7 +46,7 @@ rule compute_read_qv:
         qv_txt="results/read_qv/{sample}/{cell_name}-reference_qv.txt.gz",
     threads: 16
     resources:
-        mem=lambda wildcards, attempt: attempt * 4,
+        mem=calc_mem_gb,
         hrs=72,
     envmodules:
         "modules",
@@ -69,7 +69,7 @@ rule compute_kmer_qv:
         kmer_qv="results/read_qv/{sample}/query-reference_kqv.txt.gz",
     threads: 1
     resources:
-        mem=lambda wildcards, attempt: attempt * 46,
+        mem=calc_mem_gb,
         hrs=72,
     envmodules:
         "modules",

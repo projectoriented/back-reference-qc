@@ -6,7 +6,7 @@ rule undesirable_seq:
         undesirable_fa = temp("results/reads_filtered/{sample}/filtered_out/fasta/{cell_name}_undesirable-quality.fa"),
     threads: 1
     resources:
-        mem=lambda wildcards, attempt: attempt * 16,
+        mem=calc_mem_gb,
         hrs=72,
     envmodules:
         "modules",
@@ -31,7 +31,7 @@ rule kraken2:
         extra_param = get_kraken2_inputs(which_one="kraken_param")
     threads: 16
     resources:
-        mem=lambda wildcards, attempt: attempt * 8,
+        mem=calc_mem_gb,
         hrs=72,
     envmodules:
         "modules",
@@ -62,7 +62,7 @@ rule summarize_kraken2:
         ignore_taxa=config.get("ignore_taxid", [])
     threads: 1
     resources:
-        mem= lambda wildcards,attempt: attempt * 16,
+        mem=calc_mem_gb,
         hrs=72,
     run:
         df = pd.read_table(input.kraken2_out, header=None, names=["is_classified", "qname", "taxonomy", "length(bp)"])
@@ -95,7 +95,7 @@ rule merge_summaries:
         merged = "results/reads_filtered/{sample}/filtered_out/kraken2/summary.tsv.gz"
     threads: 1
     resources:
-        mem=lambda wildcards,attempt: attempt * 16,
+        mem=calc_mem_gb,
         hrs=72,
     run:
         df = pd.concat([pd.read_table(x, header=0) for x in input.kraken2_summaries])

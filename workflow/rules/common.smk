@@ -43,6 +43,15 @@ def get_kraken2_summaries(wildcards):
         cell_name=fofn_df.index.tolist()
     )
 
+def calc_mem_gb(wildcards, input, attempt, threads):
+    mb = max(1.5 * input.size_mb, 1000)
+    gb = int(mb / 1000)
+
+    if threads != 1:
+        gb = int(max(gb / threads, 2))
+
+    return gb * attempt
+
 def get_kraken2_inputs(which_one):
     def inner(wildcards):
         kraken_param = ""

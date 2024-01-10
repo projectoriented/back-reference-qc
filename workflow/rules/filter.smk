@@ -15,7 +15,7 @@ rule extract_reads:
         "results/reads_filtered/{sample}/log/{cell_name}-extract_undesirable_reads.log",
     threads: 1
     resources:
-        mem=lambda wildcards, attempt: attempt * 16,
+        mem=calc_mem_gb,
         hrs=72,
     run:
         from scipy import stats
