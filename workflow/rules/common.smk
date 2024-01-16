@@ -1,5 +1,4 @@
 import os
-import sys
 import pandas as pd
 from snakemake.utils import validate
 
@@ -17,6 +16,7 @@ validate(df, schema="../schemas/manifest.schema.yaml")
 # --------  Constraints -------- #
 wildcard_constraints:
     input_type="query|reference",
+    suffix="with_reference_help|from_raw"
 
 
 # --------  Input functions -------- #
@@ -30,8 +30,8 @@ def get_final_output(wildcards):
             final_outputs.append(f"results/plots/{row.sample}/kde-before_filter.png"),
             final_outputs.append(f"results/plots/{row.sample}/kde-after_filter.png"),
 
-            if config["new_fastq"]:
-                final_outputs.append(f"results/reads_filtered/{row.sample}/fastq.fofn")
+        if config["new_fastq"]:
+            final_outputs.append(f"results/reads_filtered/{row.sample}/fastq.fofn")
 
     return expand(final_outputs)
 
@@ -127,8 +127,13 @@ def get_query_outs(which_one):
             return cell_specific_qv
         elif which_one == "new_fastqz":
             fofn_df = get_query_fastq(sample_name=wildcards.sample)
+
+            suffix = "with_reference_help"
+            if df.at[wildcards.sample, "reference_fofn"] == "N/A":
+                suffix = "from_raw"
+
             new_fastqz = fofn_df.apply(
-                lambda row: f"results/reads_filtered/{wildcards.sample}/fastq/{row.name}-subset.fastq.gz",
+                lambda row: f"results/reads_filtered/{wildcards.sample}/fastq/{row.name}_target-reads_{suffix}-subset.fastq.gz",
                 axis=1,
             ).tolist()
 

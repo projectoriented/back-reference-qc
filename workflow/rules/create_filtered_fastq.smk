@@ -6,12 +6,12 @@ if config["new_fastq"]:
 
     rule split_fastq:
         input:
-            target_reads="results/reads_filtered/{sample}/{cell_name}_target-reads.txt",
+            target_reads="results/reads_filtered/{sample}/{cell_name}_target-reads_{suffix}.txt",
             kraken2_target_reads = "results/reads_filtered/{sample}/retain/kraken2/{cell_name}_target-reads.txt"
         output:
             splitted=temp(
                 scatter.sg_parts(
-                    "results/reads_filtered/{{sample}}/temp/{{cell_name}}_target-reads_{scatteritem}.txt"
+                    "results/reads_filtered/{{sample}}/temp/{{cell_name}}_{{suffix}}_{scatteritem}.txt"
                 )
             ),
         threads: 1
@@ -29,17 +29,20 @@ if config["new_fastq"]:
             df = pd.read_table(input.target_reads, header=None)
             df = pd.concat([df, kraken_df])
 
+            # Remove duplicated read names just in case.
+            df.drop_duplicates(inplace=True, ignore_index=True)
+
             dfs = np.array_split(df, parts)
             for idx, entry in enumerate(dfs):
                 entry.to_csv(output.splitted[idx], index=False, header=False)
 
     rule subset_fastq:
         input:
-            target_reads="results/reads_filtered/{sample}/temp/{cell_name}_target-reads_{scatteritem}.txt",
+            target_reads="results/reads_filtered/{sample}/temp/{cell_name}_{suffix}_{scatteritem}.txt",
             fastq=get_reads(which_one="cell"),
         output:
             subsetted_fastq=temp(
-                "results/reads_filtered/{sample}/temp/{cell_name}-subset_{scatteritem}.fastq"
+                "results/reads_filtered/{sample}/temp/{cell_name}_{suffix}-subset_{scatteritem}.fastq"
             ),
         threads: 1
         resources:
@@ -59,12 +62,12 @@ if config["new_fastq"]:
     rule gather_fastq:
         input:
             subset_fastqs=gather.sg_parts(
-                "results/reads_filtered/{{sample}}/temp/{{cell_name}}-subset_{scatteritem}.fastq"
+                "results/reads_filtered/{{sample}}/temp/{{cell_name}}_{{suffix}}-subset_{scatteritem}.fastq"
             ),
         output:
-            new_fastqz="results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq.gz",
+            new_fastqz="results/reads_filtered/{sample}/fastq/{cell_name}_target-reads_{suffix}-subset.fastq.gz",
             merged_fastqs=temp(
-                "results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq"
+                "results/reads_filtered/{sample}/fastq/{cell_name}_target-reads_{suffix}-subset.fastq"
             ),
         threads: 1
         resources:

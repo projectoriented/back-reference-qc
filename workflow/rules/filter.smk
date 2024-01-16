@@ -6,7 +6,7 @@ rule extract_reads:
         yak_filtered="results/reads_filtered/{sample}/{cell_name}-reference_qv-filtered.txt.gz",
         undesirable_reads="results/reads_filtered/{sample}/filtered_out/{cell_name}_undesirable-reads.txt",
         target_reads=temp(
-            "results/reads_filtered/{sample}/{cell_name}_target-reads.txt"
+            "results/reads_filtered/{sample}/{cell_name}_target-reads_with_reference_help.txt"
         ),
         new_fai="results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq.gz.fai",
     params:
@@ -122,3 +122,26 @@ rule extract_reads:
             sep="\t",
         )
         fastq_fai_df.to_csv(output.new_fai, header=False, index=False, sep="\t")
+
+rule extract_reads_from_raw_kraken_output:
+    input:
+        kraken2_out = "results/reads_filtered/{sample}/filtered_out/kraken2/{cell_name}_kraken2-out.txt.gz"
+    output:
+        target_reads = "results/reads_filtered/{sample}/{cell_name}_target-reads_from_raw.txt"
+    params:
+        target_taxa=config.get("ignore_taxid", [9606])
+    threads: 1
+    resources:
+        mem=calc_mem_gb,
+        hrs=72,
+    run:
+        df = pd.read_table(input.kraken2_out,header=None,names=["is_classified", "qname", "taxonomy", "length(bp)"])
+        target_taxa_list = params.target_taxa
+
+        # Write out the target read names, taxid 9606 is Homo sapiens
+        target_taxas = '|'.join([f"\(taxid {x}\)" for x in target_taxa_list])
+        df.loc[
+            df["taxonomy"].str.contains(fr"{target_taxas}")
+        ].to_csv(
+            output.target_reads,columns=["qname"],header=False,index=False
+        )
