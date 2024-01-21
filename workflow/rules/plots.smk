@@ -5,7 +5,7 @@ rule generate_kde_plot:
         sample_qv_kde="results/plots/{sample}/kde-before_filter.png",
     threads: 1
     resources:
-        mem=calc_mem_gb,
+        mem=lambda wildcards, attempt: attempt * 45,
         hrs=72,
     run:
         import matplotlib.pyplot as plt
@@ -55,7 +55,7 @@ rule kde_filtered:
         sample_qv_kde="results/plots/{sample}/kde-after_filter.png",
     threads: 1
     resources:
-        mem=calc_mem_gb,
+        mem=lambda wildcards, attempt: attempt * 45,
         hrs=72,
     run:
         import matplotlib.pyplot as plt
