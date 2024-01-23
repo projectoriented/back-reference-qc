@@ -71,7 +71,7 @@ if config["new_fastq"]:
             ),
         threads: 1
         resources:
-            mem=calc_mem_gb,
+            mem=lambda wildcards, attempt: attempt * 8,
             hrs=72,
         envmodules:
             "modules",
