@@ -71,7 +71,7 @@ if config["new_fastq"]:
             ),
         threads: 1
         resources:
-            mem=lambda wildcards, attempt: attempt * 8,
+            mem=lambda wildcards, attempt: attempt * 16,
             hrs=72,
         envmodules:
             "modules",
@@ -93,7 +93,7 @@ if config["new_fastq"]:
             new_fofn="results/reads_filtered/{sample}/fastq.fofn",
         threads: 1
         resources:
-            mem=calc_mem_gb,
+            mem=lambda wildcards, attempt: attempt * 2,
             hrs=72,
         shell:
             """
