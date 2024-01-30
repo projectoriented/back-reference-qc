@@ -78,6 +78,10 @@ QV thresholds:
 ## FAQ
 1. What is an example config and manifest?
    1. Answer coming soon.
+2. Where can I find the Kraken2 database?
+   1. `wget https://genome-idx.s3.amazonaws.com/kraken/k2_standard_20230605.tar.gz`
+   2. It contains Refeq archaea, bacteria, viral, plasmid, human1, UniVec_Core.
+   3. You can find other types of databases here: https://benlangmead.github.io/aws-indexes/k2
 
 ## Overview
 ![pipeline vector](https://github.com/projectoriented/back-reference-qc/blob/main/dag.svg)
