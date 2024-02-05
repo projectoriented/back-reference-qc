@@ -8,7 +8,6 @@ rule extract_reads:
         target_reads=temp(
             "results/reads_filtered/{sample}/{cell_name}_target-reads_with_reference_help.txt"
         ),
-        new_fai="results/reads_filtered/{sample}/fastq/{cell_name}-subset.fastq.gz.fai",
     params:
         comparison_type = get_comparison_type
     log:
@@ -113,15 +112,6 @@ rule extract_reads:
                 yak_out_df.read_name
             )
         ]
-
-        fastq_fai_df.to_csv(
-            output.target_reads,
-            header=False,
-            index=False,
-            columns=["read_name"],
-            sep="\t",
-        )
-        fastq_fai_df.to_csv(output.new_fai, header=False, index=False, sep="\t")
 
 rule extract_reads_from_raw_kraken_output:
     input:
