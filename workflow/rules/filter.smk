@@ -113,6 +113,15 @@ rule extract_reads:
             )
         ]
 
+        fastq_fai_df.to_csv(
+            output.target_reads,
+            header=False,
+            index=False,
+            columns=["read_name"],
+            sep="\t",
+        )
+        
+
 rule extract_reads_from_raw_kraken_output:
     input:
         kraken2_out = "results/reads_filtered/{sample}/filtered_out/kraken2/{cell_name}_kraken2-out.txt.gz"
