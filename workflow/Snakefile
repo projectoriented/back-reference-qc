@@ -14,8 +14,16 @@ include: "rules/filter.smk"
 include: "rules/identify_contaminants.smk"
 include: "rules/create_filtered_fastq.smk"
 include: "rules/plots.smk"
+include: "rules/overwrite_fastq.smk"
 
 # --------  Begin -------- #
 rule all:
     input:
         get_final_output,
+
+rule overwrite:
+    input:
+        expand(
+            "results/overwrite_records/{sample}.overwrite_records.tab.gz",
+            sample=df.index.values,
+        )
