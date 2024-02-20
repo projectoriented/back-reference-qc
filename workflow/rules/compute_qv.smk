@@ -57,7 +57,9 @@ rule compute_read_qv:
     shell:
         """
         # compute read QV
-        yak qv -t {threads} -p {input.reference_hash_table} {input.query_read} | gzip -c > {output.qv_txt}
+        rsync -av {input.query_read} {resources.tmpdir}
+        rsync -av {input.reference_hash_table} {resources.tmpdir}
+        yak qv -t {threads} -p {resources.tmpdir}/$( basename {input.reference_hash_table} ) {resources.tmpdir}/$( basename {input.query_read} ) | gzip -c > {output.qv_txt}
         """
 
 
